@@ -5,7 +5,7 @@ import {delay, of} from 'rxjs';
 export const getRandomFeedDataObservable = (params?: any) => of(getRandomData(params)).pipe(delay(300));
 
 function getRandomData(params?: any): FakeFeedResponse {
-  const page = +params?.['nextPage'] ?? 1;
+  const page = +(params?.['nextPage'] ?? 1);
 
   const items: FeedItem[] = [];
 
