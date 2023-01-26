@@ -1,4 +1,4 @@
-import React, {ChangeEvent, useMemo, useRef} from 'react';
+import React, {ChangeEvent, useMemo, useRef, useState} from 'react';
 import {getRandomFeedDataObservable} from '../faker';
 import {BehaviorSubject, catchError, defer, EMPTY, exhaustMap, filter, from, map, mergeAll, scan, startWith, switchMap, tap} from 'rxjs';
 import {useObservedValue, useReactiveCallback} from '../hooks/observable';
@@ -8,6 +8,7 @@ import {fromMutationObserver} from '../fromMutationObserver';
 import {fromIntersectionObserver} from '../fromIntersectionObserver';
 
 function FeedComponent() {
+  const [loading, setLoading] = useState(true);
   const nextPageRef = useRef<number | null>(1);
   const articlesDiv = useRef(null);
 
@@ -39,7 +40,9 @@ function FeedComponent() {
             ? getRandomFeedDataObservable({nextPage: nextPageRef.current, feedFilter}).pipe(
               catchError(() => EMPTY),
               tap({
-                next: ({nextPage}) => nextPageRef.current = nextPage
+                subscribe: () => setLoading(true),
+                next: ({nextPage}) => nextPageRef.current = nextPage,
+                finalize: () => setLoading(false)
               })
             )
             : EMPTY)
@@ -52,6 +55,9 @@ function FeedComponent() {
 
   return (
     <>
+      {loading && <div className={classes.loading}>
+        Loading...
+      </div>}
       <div className={classes.filter}>
         <form>
           <label>

@@ -1,3 +1,16 @@
+.loading {
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  right: 0;
+  left: 0;
+  background-color: #000;
+  opacity: .7;
+  text-align: center;
+  color: #FFF;
+  padding: 8px 0;
+}
+
 .filter {
   margin: 40px 40px 20px;
   padding-bottom: 20px;
