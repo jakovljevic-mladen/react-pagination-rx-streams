@@ -1,8 +1,8 @@
-import React, {useMemo, useRef} from 'react';
+import React, {ChangeEvent, useMemo, useRef} from 'react';
 import {getRandomFeedDataObservable} from '../faker';
-import {catchError, defer, EMPTY, exhaustMap, filter, from, map, mergeAll, scan, startWith, switchMap, tap} from 'rxjs';
-import {useObservedValue} from '../hooks/observable';
-import {FeedItem} from '../models';
+import {BehaviorSubject, catchError, defer, EMPTY, exhaustMap, filter, from, map, mergeAll, scan, startWith, switchMap, tap} from 'rxjs';
+import {useObservedValue, useReactiveCallback} from '../hooks/observable';
+import {FeedFilterType, FeedItem} from '../models';
 import classes from './FeedComponent.module.css';
 import {fromMutationObserver} from '../fromMutationObserver';
 import {fromIntersectionObserver} from '../fromIntersectionObserver';
@@ -10,6 +10,11 @@ import {fromIntersectionObserver} from '../fromIntersectionObserver';
 function FeedComponent() {
   const nextPageRef = useRef<number | null>(1);
   const articlesDiv = useRef(null);
+
+  const [filterChange$, filterChangeCallback] = useReactiveCallback<ChangeEvent<HTMLSelectElement>, FeedFilterType>({
+    selector: ev => ev.target.value as FeedFilterType,
+    connector: () => new BehaviorSubject('' as FeedFilterType)
+  });
 
   const loadMore$ = useMemo(() => defer(() => fromMutationObserver(articlesDiv.current!, {
     childList: true,
@@ -26,21 +31,39 @@ function FeedComponent() {
     startWith(null)
   )), []);
 
-  const feed$ = useMemo(() => loadMore$.pipe(
-    exhaustMap(() => nextPageRef.current
-      ? getRandomFeedDataObservable({nextPage: nextPageRef.current}).pipe(
-        catchError(() => EMPTY),
-        tap({
-          next: ({nextPage}) => nextPageRef.current = nextPage
-        })
-      )
-      : EMPTY),
-    scan((acc, {items}) => acc.concat(items), [] as FeedItem[])), [loadMore$]);
+  const feed$ = useMemo(() => filterChange$.pipe(
+      switchMap(feedFilter => {
+        nextPageRef.current = 1;
+        return loadMore$.pipe(
+          exhaustMap(() => nextPageRef.current
+            ? getRandomFeedDataObservable({nextPage: nextPageRef.current, feedFilter}).pipe(
+              catchError(() => EMPTY),
+              tap({
+                next: ({nextPage}) => nextPageRef.current = nextPage
+              })
+            )
+            : EMPTY)
+        );
+      }),
+      scan((acc, {items, page}) => page === 1 ? items : acc.concat(items), [] as FeedItem[])),
+    [filterChange$, loadMore$]);
 
   const feedItems = useObservedValue<FeedItem[]>(feed$, []);
 
   return (
     <>
+      <div className={classes.filter}>
+        <form>
+          <label>
+            Feed options
+            <select name="feedFilter" onChange={filterChangeCallback}>
+              <option value="">All</option>
+              <option value="onlyImages">Only Images</option>
+              <option value="onlyText">Only Text</option>
+            </select>
+          </label>
+        </form>
+      </div>
       <div className={classes.articles} ref={articlesDiv}>
         {feedItems.map((item) => (
           <article id={item.id} key={item.id}>

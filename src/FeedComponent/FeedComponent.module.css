@@ -1,3 +1,9 @@
+.filter {
+  margin: 40px 40px 20px;
+  padding-bottom: 20px;
+  border-bottom: #aaa 1px solid;
+}
+
 .articles {
   margin: 20px 40px 20px 40px;
 }

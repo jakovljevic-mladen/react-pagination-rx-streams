@@ -1,18 +1,19 @@
 import {faker} from '@faker-js/faker';
-import {FakeFeedResponse, FeedItem} from './models';
+import {FakeFeedResponse, FeedFilterType, FeedItem} from './models';
 import {delay, of} from 'rxjs';
 
 export const getRandomFeedDataObservable = (params?: any) => of(getRandomData(params)).pipe(delay(300));
 
 function getRandomData(params?: any): FakeFeedResponse {
   const page = +(params?.['nextPage'] ?? 1);
+  const feedFilter: FeedFilterType = params?.['feedFilter'] ?? '';
 
   const items: FeedItem[] = [];
 
   const maxItemsPerPage = 12;
 
   for (let i = 0; i < maxItemsPerPage; i++) {
-    items.push(getRandomDataItem(((page - 1) * maxItemsPerPage + i).toString()));
+    items.push(getRandomDataItem(((page - 1) * maxItemsPerPage + i).toString(), feedFilter));
   }
 
   return {
@@ -22,8 +23,8 @@ function getRandomData(params?: any): FakeFeedResponse {
   };
 }
 
-function getRandomDataItem(id: string): FeedItem {
-  const text = faker.datatype.boolean();
+function getRandomDataItem(id: string, feedFilter: FeedFilterType): FeedItem {
+  const text = feedFilter ? feedFilter === 'onlyText' : faker.datatype.boolean();
 
   return {
     id,
