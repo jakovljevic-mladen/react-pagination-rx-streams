@@ -36,7 +36,7 @@ article p {
 
 .user {
   font-weight: 600;
-  color: gray;
+  color: #808080;
   display: flex;
   align-items: center;
 }
@@ -47,4 +47,23 @@ article p {
   margin: 10px;
   border-radius: 50%;
   font-size: 8px;
+}
+
+.error {
+  display: flex;
+  justify-content: center;
+}
+
+.error > div:not(.spacer) {
+  margin: 20px;
+  padding: 20px;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  background-color: #eee;
+  color: #000;
+  cursor: pointer;
+}
+
+.spacer {
+  height: 104px;
 }

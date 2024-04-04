@@ -1,12 +1,28 @@
-import {faker} from '@faker-js/faker';
-import {FakeFeedResponse, FeedFilterType, FeedItem} from './models';
-import {delay, of} from 'rxjs';
+import { faker } from '@faker-js/faker';
+import { FakeFeedResponse, FeedFilterType, FeedItem } from './models';
+import { delay, of, concat, timer, throwError, ignoreElements } from 'rxjs';
 
-export const getRandomFeedDataObservable = (params?: any) => of(getRandomData(params)).pipe(delay(300));
+type Params = {
+  nextPage?: number | null;
+  feedFilter?: FeedFilterType;
+};
 
-function getRandomData(params?: any): FakeFeedResponse {
-  const page = +(params?.['nextPage'] ?? 1);
-  const feedFilter: FeedFilterType = params?.['feedFilter'] ?? '';
+export const getRandomFeedDataObservable = (params?: Params) => {
+  const nextPage = params?.nextPage ?? 1;
+
+  if (nextPage > 2 && Math.random() < 0.2) {
+    return concat(
+      timer(1_000).pipe(ignoreElements()),
+      throwError(() => new Error('Fake error occurred'))
+    );
+  }
+
+  return of(getRandomData(params)).pipe(delay(300));
+};
+
+function getRandomData(params?: Params): FakeFeedResponse {
+  const page = params?.nextPage ?? 1;
+  const feedFilter = params?.feedFilter ?? '';
 
   const items: FeedItem[] = [];
 
