@@ -65,11 +65,6 @@ function FeedComponent() {
                   setLoading(true);
                   setError(null);
                 },
-                next: res => {
-                  if ('nextPage' in res) {
-                    nextPageRef.current = res.nextPage;
-                  }
-                },
                 finalize: () => {
                   setLoading(false);
                 }
@@ -86,7 +81,8 @@ function FeedComponent() {
         }
 
         if ('items' in res) {
-          const { items, page } = res;
+          const { items, page, nextPage } = res;
+          nextPageRef.current = nextPage;
 
           return page === 1 ? items : acc.concat(items);
         }
